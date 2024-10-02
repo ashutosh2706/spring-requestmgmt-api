@@ -40,11 +40,12 @@ public class SecurityConfig {
         return new JwtAuthTokenFilter();
     }
 
+    private static final String[] WHITE_LISTED_PATHS = {"/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"};
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests((requests) -> requests.requestMatchers("/api/auth/**", "/swagger-ui/**",
-                        "/v3/api-docs/**")
+        http.authorizeHttpRequests((requests) -> requests.requestMatchers(WHITE_LISTED_PATHS)
                 .permitAll()
                 .anyRequest().authenticated());
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

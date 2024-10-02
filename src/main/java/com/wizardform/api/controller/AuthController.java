@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,9 +40,7 @@ public class AuthController {
 
     @PostMapping("login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-
         Authentication authentication;
-
         try {
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));
         } catch (Exception e) {
@@ -50,10 +49,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body(body);
         }
 
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateToken(userDetails);
-        return ResponseEntity.ok(jwt);
+        return ResponseEntity.ok(new AbstractMap.SimpleEntry<>("token", jwt));
     }
 
     @PostMapping("register")
