@@ -41,20 +41,4 @@ public class Request {
     @JoinColumn(name = "fileId")
     private FileDetail fileDetail;
 
-//    private long getUserId() {
-//        return this.user.getUserId();
-//    }
-
-//    private int getPriorityCode() {
-//        return this.priority.getPriorityCode();
-//    }
-
-//    private int getStatusCode() {
-//        return this.status.getStatusCode();
-//    }
-
-//    private long getFileId() {
-//        return this.fileDetail.getFileId();
-//    }
-
 }

@@ -18,7 +18,4 @@ public class FileDetail {
     private String fileName;
     @Column(nullable = false)
     private String checksum;
-
-    @OneToOne(mappedBy = "fileDetail")
-    private Request request;
 }

@@ -1,5 +1,6 @@
 package com.wizardform.api.exception;
 
+import com.wizardform.api.helper.Utils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,43 +34,55 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RoleNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleRoleNotFoundException(RoleNotFoundException e) {
-        return new ResponseEntity<>("RoleNotFoundException: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleRoleNotFoundException(RoleNotFoundException e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("RoleNotFoundException", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException e) {
-        return new ResponseEntity<>("UserNotFoundException: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("UserNotFoundException", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(StatusNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleStatusNotFoundException(StatusNotFoundException e) {
-        return new ResponseEntity<>("StatusNotFoundException: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleStatusNotFoundException(StatusNotFoundException e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("StatusNotFoundException", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PriorityNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handlePriorityNotFoundException(Exception e) {
-        return new ResponseEntity<>("PriorityNotFoundException: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handlePriorityNotFoundException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("PriorityNotFoundException", e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileDetailsNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<Object> handleFileDetailsNotFoundException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("FileDetailsNotFoundException", e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RequestNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleRequestNotFoundException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("RequestNotFoundException", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    public ResponseEntity<String> handleHttpRequestMethodNotSupportedException(Exception e) {
-        return new ResponseEntity<>("HttpRequestMethodNotSupportedException: " + e.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
+    public ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("HttpRequestMethodNotSupportedException", e.getMessage()), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleHttpMessageNotReadableException(Exception e) {
-        return new ResponseEntity<>("HttpMessageNotReadableException: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> handleHttpMessageNotReadableException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("HttpMessageNotReadableException", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<String> handleAuthorizationDeniedException(Exception e) {
-        return new ResponseEntity<>("AuthorizationDeniedException: " + e.getMessage(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<Object> handleAuthorizationDeniedException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("AuthorizationDeniedException", e.getMessage()), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)
@@ -77,9 +90,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleGeneralException(Exception e) {
         e.printStackTrace();
         System.err.println(e.getMessage());
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Internal Server Error");
-        response.put("message", "Check error logs for details");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(Utils.createErrorResponse("Internal Server Error", "Check error log for details"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
