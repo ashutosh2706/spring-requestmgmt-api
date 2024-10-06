@@ -48,8 +48,9 @@ public class RequestController {
 
     @PutMapping("update")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute RequestDto requestDto) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute RequestDto requestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+        RequestDto response = requestService.updateRequest(requestDto);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("delete/{requestId}")

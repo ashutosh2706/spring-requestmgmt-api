@@ -66,6 +66,12 @@ public class FileServiceImpl implements FileService {
         Optional<FileDetail> fileDetailsOptional = fileDetailRepository.findByFileId(fileId);
         if(fileDetailsOptional.isPresent()) {
             fileDetailRepository.delete(fileDetailsOptional.get());
+            // delete attachment (if present)
+            String fileName = fileDetailsOptional.get().getFileName();
+            File attachment = new File(ROOT_PATH, UPLOAD_DIR + File.separator + fileName);
+            if(attachment.exists()) {
+                attachment.delete();
+            }
         } else throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
     }
 }

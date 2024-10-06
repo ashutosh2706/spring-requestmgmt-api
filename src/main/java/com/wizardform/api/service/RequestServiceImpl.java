@@ -12,13 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-
-import static com.wizardform.api.Constants.ROOT_PATH;
-import static com.wizardform.api.Constants.UPLOAD_DIR;
 
 @Component
 public class RequestServiceImpl implements RequestService {
@@ -83,27 +79,49 @@ public class RequestServiceImpl implements RequestService {
         } else throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
     }
 
-    /*
-     * TODO: add method to update Request (requestId will remain same)
-     */
-    // if file is provided in update request then delete the existing file & it's details and insert new
-    // else keep the existing file
-    // check using attachedFile == null
-    // this will return a boolean
+    @Override
+    @Transactional
+    public RequestDto updateRequest(RequestDto requestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+        Optional<Request> requestOptional = requestRepository.findByRequestId(requestDto.getRequestId());
+        if(requestOptional.isPresent()) {
+
+            MultipartFile attachedFile = requestDto.getAttachedFile();
+            FileDetail newFileDetail = null;
+
+            Priority newPriority = priorityService.getPriorityByPriorityCode(requestDto.getPriorityCode());
+            User newUser = userService.getUserByUserId(requestDto.getUserId());
+
+            Request existingRequest = requestOptional.get();
+            // update the existing request with new data
+            existingRequest.setTitle(requestDto.getTitle());
+            existingRequest.setGuardianName(requestDto.getGuardianName());
+            existingRequest.setRequestDate(requestDto.getRequestDate());
+            existingRequest.setPhone(requestDto.getPhone());
+            existingRequest.setUser(newUser);
+            existingRequest.setPriority(newPriority);
+
+            if(attachedFile != null) {
+                // existing file will be deleted along with it's details and new one will be copied and details saved to db
+                long existingFileId = existingRequest.getFileDetail().getFileId();
+                fileService.deleteFileDetails(existingFileId);
+                newFileDetail = fileService.saveFile(attachedFile);
+                existingRequest.setFileDetail(newFileDetail);
+            }
+
+            Request updatedRequest = requestRepository.save(existingRequest);
+            return RequestMapper.INSTANCE.requestToRequestDto(updatedRequest);
+
+        } else throw new RequestNotFoundException("Request with id: " + requestDto.getRequestId() + " was not found");
+    }
 
     @Override
     @Transactional
     public void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException {
         Optional<Request> requestOptional = requestRepository.findByRequestId(requestId);
         if(requestOptional.isPresent()) {
+            // first delete the request and then file details (mark the order)
             requestRepository.delete(requestOptional.get());
             fileService.deleteFileDetails(requestOptional.get().getFileDetail().getFileId());
-            // delete attachment (if present)
-            String fileName = requestOptional.get().getFileDetail().getFileName();
-            File attachment = new File(ROOT_PATH, UPLOAD_DIR + File.separator + fileName);
-            if(attachment.exists()) {
-                attachment.delete();
-            }
         } else throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
     }
 }

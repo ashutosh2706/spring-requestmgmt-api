@@ -13,4 +13,5 @@ public interface RequestService {
     RequestDto addNewRequest(RequestDto requestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto getRequestByRequestId(long requestId) throws RequestNotFoundException;
     void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException;
+    RequestDto updateRequest(RequestDto requestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException;
 }
