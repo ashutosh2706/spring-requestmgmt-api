@@ -16,8 +16,8 @@ public class QueryParams {
 
     private String searchTerm = "";
     private String sortField = "";
-    @Pattern(regexp = "ascending|descending", message = "Sort direction must be 'ascending' or 'descending'")
-    private String sortDirection = "ascending";     // default sorting direction is ascending
+    @Pattern(regexp = "asc|desc", message = "Sort direction must be either 'ascending' or 'descending'")
+    private String sortDirection = "asc";     // default sorting direction is ascending (asc)
     @Min(value = 1, message = "Page number should be >= 1")
     @Max(value = Integer.MAX_VALUE, message = "Page number should be under max integer limit")
     private int pageNumber = 1;

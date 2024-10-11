@@ -15,5 +15,6 @@ public class PagedResponseDto<T> {
     private int pageNumber;
     private int pageSize;
     private int totalPage;
+    private long totalItems;
     private List<T> items;
 }

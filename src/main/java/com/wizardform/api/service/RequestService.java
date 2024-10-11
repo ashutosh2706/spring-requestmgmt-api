@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Service
 public interface RequestService {
-    PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection);
+    PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException;
     RequestDto addNewRequest(RequestDto requestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto getRequestByRequestId(long requestId) throws RequestNotFoundException;
     void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException;

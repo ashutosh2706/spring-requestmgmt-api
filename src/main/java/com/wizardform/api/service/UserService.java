@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface UserService {
 
-    public PagedResponseDto<UserResponseDTO> getAllUsers(String searchTerm, int pageNumber, int pageSize);
+    public PagedResponseDto<UserResponseDTO> getAllUsers(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException;
     public User getUserByUserId(long userId) throws UserNotFoundException;
     public void changeRole(long userId, int roleId) throws RoleNotFoundException;
     public UserResponseDTO addUser(UserDto userDTO) throws RoleNotFoundException;

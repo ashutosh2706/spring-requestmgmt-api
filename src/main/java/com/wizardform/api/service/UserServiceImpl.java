@@ -13,11 +13,15 @@ import com.wizardform.api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,12 +39,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PagedResponseDto<UserResponseDTO> getAllUsers(String searchTerm, int pageNumber, int pageSize) {
+    public PagedResponseDto<UserResponseDTO> getAllUsers(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException {
 
-        // pagination will be implemented later
-        System.out.println(pageNumber + " " + pageSize + " " + searchTerm);
+        sortField = sortField.trim().isEmpty() ? "userId" : sortField;
+        if(!isValidSortField(sortField)) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
 
-        List<User> users = userRepository.findAll();
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
+        Page<User> userPage = userRepository.findAll(pageRequest);
+        List<User> users = userPage.getContent();
         List<UserResponseDTO> result = new ArrayList<>();
 
         for(User user: users) {
@@ -53,7 +62,8 @@ public class UserServiceImpl implements UserService {
             userResponseDTO.setRoleId(user.getRole().getRoleId());
             result.add(userResponseDTO);
         }
-        return new PagedResponseDto<>(pageNumber, pageSize, 1, result);
+
+        return new PagedResponseDto<>(pageNumber, userPage.getNumberOfElements(), userPage.getTotalPages(), userPage.getTotalElements(), result);
     }
 
     /**
@@ -132,5 +142,13 @@ public class UserServiceImpl implements UserService {
                 return optionalUser.orElseThrow(() -> new UsernameNotFoundException("User with email (" + username + ") was not found"));
             }
         };
+    }
+
+    private static boolean isValidSortField(String sortField) {
+        for(Field field: User.class.getDeclaredFields()) {
+            if(field.getName().equals(sortField))
+                return true;
+        }
+        return false;
     }
 }

@@ -85,6 +85,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(Utils.createErrorResponse("AuthorizationDeniedException", e.getMessage()), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleIllegalArgumentException(Exception e) {
+        return new ResponseEntity<>(Utils.createErrorResponse("IllegalArgumentException", e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleGeneralException(Exception e) {

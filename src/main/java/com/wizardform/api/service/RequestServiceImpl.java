@@ -9,10 +9,14 @@ import com.wizardform.api.model.*;
 import com.wizardform.api.repository.RequestRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,10 +39,22 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) {
-        List<Request> requests = requestRepository.findAll();
+    public PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException {
+        // default sort field is requestId if none provided
+        // validation check: if the value provided in sortField is a valid property or not
+        sortField = sortField.trim().isEmpty() ? "requestId" : sortField;
+        if(!isValidSortField(sortField)) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
+
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
+
+        Page<Request> requestPage = requestRepository.findAll(pageRequest);
+        List<Request> requests = requestPage.getContent();
+        // now map it to requestDto and return as expected
         List<RequestDto> requestDtoList = RequestMapper.INSTANCE.requestListToRequestDtoList(requests);
-        return new PagedResponseDto<>(pageNumber, pageSize, 1, requestDtoList);
+        return new PagedResponseDto<>(pageNumber, requestPage.getNumberOfElements(), requestPage.getTotalPages(), requestPage.getTotalElements(), requestDtoList);
     }
 
     @Override
@@ -123,5 +139,14 @@ public class RequestServiceImpl implements RequestService {
             requestRepository.delete(requestOptional.get());
             fileService.deleteFileDetails(requestOptional.get().getFileDetail().getFileId());
         } else throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
+    }
+
+    // use reflection to validate if the given sortField is present
+    private static boolean isValidSortField(String sortField) {
+        for(Field field: Request.class.getDeclaredFields()) {
+            if(field.getName().equals(sortField))
+                return true;
+        }
+        return false;
     }
 }

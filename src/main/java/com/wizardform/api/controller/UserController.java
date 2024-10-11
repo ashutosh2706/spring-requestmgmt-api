@@ -26,8 +26,8 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getAllUsers(@Valid @ModelAttribute QueryParams queryParams) {
-        PagedResponseDto<UserResponseDTO> response = userService.getAllUsers(queryParams.getSearchTerm(), queryParams.getPageNumber(), queryParams.getPageSize());
+    public ResponseEntity<?> getAllUsers(@Valid @ModelAttribute QueryParams queryParams) throws IllegalArgumentException {
+        PagedResponseDto<UserResponseDTO> response = userService.getAllUsers(queryParams.getSearchTerm(), queryParams.getPageNumber(), queryParams.getPageSize(), queryParams.getSortField(), queryParams.getSortDirection());
         return ResponseEntity.ok(response);
     }
 

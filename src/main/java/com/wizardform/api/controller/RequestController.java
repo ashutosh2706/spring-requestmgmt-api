@@ -27,7 +27,7 @@ public class RequestController {
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getAllRequest(@Valid @ModelAttribute QueryParams queryParams) {
+    public ResponseEntity<?> getAllRequest(@Valid @ModelAttribute QueryParams queryParams) throws IllegalArgumentException {
         PagedResponseDto<RequestDto> response = requestService.getAllRequests(queryParams.getSearchTerm(), queryParams.getPageNumber(), queryParams.getPageSize(), queryParams.getSortField(), queryParams.getSortDirection());
         return ResponseEntity.ok(response);
     }
