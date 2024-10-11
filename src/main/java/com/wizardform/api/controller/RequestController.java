@@ -1,5 +1,6 @@
 package com.wizardform.api.controller;
 
+import com.wizardform.api.dto.NewRequestDto;
 import com.wizardform.api.dto.PagedResponseDto;
 import com.wizardform.api.dto.RequestDto;
 import com.wizardform.api.exception.*;
@@ -34,8 +35,8 @@ public class RequestController {
 
     @PostMapping("add")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> addNewRequest(@Valid @ModelAttribute RequestDto requestDto) throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException {
-        RequestDto addedRequest = requestService.addNewRequest(requestDto);
+    public ResponseEntity<?> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto) throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException {
+        RequestDto addedRequest = requestService.addNewRequest(newRequestDto);
         return ResponseEntity.created(URI.create("/requests")).body(addedRequest);
     }
 
@@ -48,8 +49,8 @@ public class RequestController {
 
     @PutMapping("update")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute RequestDto requestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
-        RequestDto response = requestService.updateRequest(requestDto);
+    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+        RequestDto response = requestService.updateRequest(newRequestDto);
         return ResponseEntity.ok(response);
     }
 

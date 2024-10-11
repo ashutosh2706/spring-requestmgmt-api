@@ -2,6 +2,7 @@ package com.wizardform.api.service;
 
 import com.wizardform.api.Constants;
 import com.wizardform.api.dto.PagedResponseDto;
+import com.wizardform.api.dto.NewRequestDto;
 import com.wizardform.api.dto.RequestDto;
 import com.wizardform.api.exception.*;
 import com.wizardform.api.mapper.RequestMapper;
@@ -52,23 +53,22 @@ public class RequestServiceImpl implements RequestService {
 
         Page<Request> requestPage = requestRepository.findAll(pageRequest);
         List<Request> requests = requestPage.getContent();
-        // now map it to requestDto and return as expected
-        List<RequestDto> requestDtoList = RequestMapper.INSTANCE.requestListToRequestDtoList(requests);
-        return new PagedResponseDto<>(pageNumber, requestPage.getNumberOfElements(), requestPage.getTotalPages(), requestPage.getTotalElements(), requestDtoList);
+        List<RequestDto> newRequestDtoList = RequestMapper.INSTANCE.requestListToRequestDtoList(requests);
+        return new PagedResponseDto<>(pageNumber, requestPage.getNumberOfElements(), requestPage.getTotalPages(), requestPage.getTotalElements(), newRequestDtoList);
     }
 
     @Override
-    public RequestDto addNewRequest(RequestDto requestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
-        Request newRequest = RequestMapper.INSTANCE.RequestDtoToRequest(requestDto);
+    public RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
+        Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 
         // To handle the attached file
-        MultipartFile attachedFile = requestDto.getAttachedFile();
+        MultipartFile attachedFile = newRequestDto.getAttachedFile();
         FileDetail savedFileDetail = null;
 
         // new request status is always pending by default unless changed
         // priorityCode & userId will be provided by user
-        User userFromDb = userService.getUserByUserId(requestDto.getUserId());
-        Priority priorityFromDb = priorityService.getPriorityByPriorityCode(requestDto.getPriorityCode());
+        User userFromDb = userService.getUserByUserId(newRequestDto.getUserId());
+        Priority priorityFromDb = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
         Status statusFromDb = statusService.getStatusByStatusCode(Constants.StatusCode.STATUS_PENDING);
         if(userFromDb.isEnabled()) {
             if(attachedFile != null) {
@@ -83,7 +83,7 @@ public class RequestServiceImpl implements RequestService {
             Request savedRequest = requestRepository.save(newRequest);
             return RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
 
-        } else throw new UserNotFoundException("User with id: " + requestDto.getUserId() + " doesn't exist or disabled");
+        } else throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
     }
 
     @Override
@@ -97,22 +97,22 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public RequestDto updateRequest(RequestDto requestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
-        Optional<Request> requestOptional = requestRepository.findByRequestId(requestDto.getRequestId());
+    public RequestDto updateRequest(NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+        Optional<Request> requestOptional = requestRepository.findByRequestId(newRequestDto.getRequestId());
         if(requestOptional.isPresent()) {
 
-            MultipartFile attachedFile = requestDto.getAttachedFile();
+            MultipartFile attachedFile = newRequestDto.getAttachedFile();
             FileDetail newFileDetail = null;
 
-            Priority newPriority = priorityService.getPriorityByPriorityCode(requestDto.getPriorityCode());
-            User newUser = userService.getUserByUserId(requestDto.getUserId());
+            Priority newPriority = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
+            User newUser = userService.getUserByUserId(newRequestDto.getUserId());
 
             Request existingRequest = requestOptional.get();
             // update the existing request with new data
-            existingRequest.setTitle(requestDto.getTitle());
-            existingRequest.setGuardianName(requestDto.getGuardianName());
-            existingRequest.setRequestDate(requestDto.getRequestDate());
-            existingRequest.setPhone(requestDto.getPhone());
+            existingRequest.setTitle(newRequestDto.getTitle());
+            existingRequest.setGuardianName(newRequestDto.getGuardianName());
+            existingRequest.setRequestDate(newRequestDto.getRequestDate());
+            existingRequest.setPhone(newRequestDto.getPhone());
             existingRequest.setUser(newUser);
             existingRequest.setPriority(newPriority);
 
@@ -127,7 +127,7 @@ public class RequestServiceImpl implements RequestService {
             Request updatedRequest = requestRepository.save(existingRequest);
             return RequestMapper.INSTANCE.requestToRequestDto(updatedRequest);
 
-        } else throw new RequestNotFoundException("Request with id: " + requestDto.getRequestId() + " was not found");
+        } else throw new RequestNotFoundException("Request with id: " + newRequestDto.getRequestId() + " was not found");
     }
 
     @Override
