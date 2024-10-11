@@ -21,5 +21,5 @@ public class RequestDto {
     private LocalDate requestDate;
     private String priority;
     private String status;
-    private String attachmentUrl;
+    private long documentId;
 }

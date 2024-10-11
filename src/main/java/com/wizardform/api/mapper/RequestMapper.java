@@ -16,7 +16,7 @@ public interface RequestMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "priority.description", target = "priority")
     @Mapping(source = "status.description", target = "status")
-    @Mapping(target = "attachmentUrl", ignore = true)
+    @Mapping(source = "fileDetail.fileId", target = "documentId")
     List<RequestDto> requestListToRequestDtoList(List<Request> requests);
 
     @Mapping(target = "requestId", ignore = true)
@@ -29,7 +29,7 @@ public interface RequestMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "priority.description", target = "priority")
     @Mapping(source = "status.description", target = "status")
-    @Mapping(target = "attachmentUrl", ignore = true)
+    @Mapping(source = "fileDetail.fileId", target = "documentId")
     RequestDto requestToRequestDto(Request request);
 
 }
