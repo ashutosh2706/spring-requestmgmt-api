@@ -1,6 +1,7 @@
 package com.wizardform.api.controller;
 
 import com.wizardform.api.exception.FileDetailsNotFoundException;
+import com.wizardform.api.helper.Utils;
 import com.wizardform.api.model.FileDetail;
 import com.wizardform.api.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,8 @@ public class DocumentController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"");
+        String contentType = Utils.getContentType(resource.getFilename());
+        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
         return ResponseEntity.ok().headers(headers).body(resource);
     }
 }

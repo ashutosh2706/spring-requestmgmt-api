@@ -1,5 +1,6 @@
 package com.wizardform.api.controller;
 
+import com.wizardform.api.dto.AuthTokenResponse;
 import com.wizardform.api.dto.LoginRequestDto;
 import com.wizardform.api.dto.UserDto;
 import com.wizardform.api.dto.UserResponseDTO;
@@ -51,7 +52,8 @@ public class AuthController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateToken(userDetails);
-        return ResponseEntity.ok(new AbstractMap.SimpleEntry<>("token", jwt));
+        AuthTokenResponse tokenResponse = new AuthTokenResponse(jwt, 1500, "Bearer");
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("register")

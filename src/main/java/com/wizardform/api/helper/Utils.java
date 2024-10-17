@@ -61,4 +61,20 @@ public class Utils {
         response.put("message", message);
         return response;
     }
+
+    public static String getContentType(String fileName) {
+        String fileExtension = getFileExtension(fileName);
+        return switch (fileExtension) {
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "gif" -> "image/gif";
+            case "pdf" -> "application/pdf";
+            default -> "application/octet-stream"; // Default for unknown types
+        };
+    }
+
+    public static String getFileExtension(String filename) {
+        int lastIndexOfDot = filename.lastIndexOf('.');
+        return (lastIndexOfDot == -1) ? "" : filename.substring(lastIndexOfDot + 1).toLowerCase();
+    }
 }
