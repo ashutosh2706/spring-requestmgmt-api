@@ -21,7 +21,8 @@ public class JwtServiceImpl implements JwtService{
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("key", "value");
+        claims.put("type", "Bearer");
+        claims.put("roles", userDetails.getAuthorities());
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .addClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -32,7 +33,10 @@ public class JwtServiceImpl implements JwtService{
 
     // extract claims from given jwt token
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
+        Claims claims = Jwts.parserBuilder().setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         return claimsResolver.apply(claims);
     }
 
@@ -40,13 +44,6 @@ public class JwtServiceImpl implements JwtService{
         Dotenv dotenv = Dotenv.load();
         byte[] key = Decoders.BASE64.decode(dotenv.get("SIGN_KEY"));
         return Keys.hmacShaKeyFor(key);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSignKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
     }
 
     public String extractUserName(String token) {
