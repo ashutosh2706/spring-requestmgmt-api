@@ -58,6 +58,27 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    public PagedResponseDto<RequestDto> getAllRequestByUserId(long userId, String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException, UserNotFoundException {
+
+        User existingUser = userService.getUserByUserId(userId);
+
+        // default sort field is requestId if none provided
+        // validation check: if the value provided in sortField is a valid property or not
+        sortField = sortField.trim().isEmpty() ? "requestId" : sortField;
+        if(!isValidSortField(sortField)) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortField);
+        }
+
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
+
+        Page<Request> requestPage = requestRepository.findByUser(existingUser, pageRequest);
+        List<Request> userRequests = requestPage.getContent();
+        List<RequestDto> userRequestDtoList = RequestMapper.INSTANCE.requestListToRequestDtoList(userRequests);
+        return new PagedResponseDto<>(pageNumber, requestPage.getNumberOfElements(), requestPage.getTotalPages(), requestPage.getTotalElements(), userRequestDtoList);
+    }
+
+    @Override
     public RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
         Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 

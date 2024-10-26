@@ -47,6 +47,13 @@ public class RequestController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("user/{userId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<?> getAllRequestByUserId(@PathVariable long userId, @Valid @ModelAttribute QueryParams queryParams) throws IllegalArgumentException, UserNotFoundException {
+        PagedResponseDto<RequestDto> response = requestService.getAllRequestByUserId(userId, queryParams.getSearchTerm(), queryParams.getPageNumber(), queryParams.getPageSize(), queryParams.getSortField(), queryParams.getSortDirection());
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("update")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateRequest(@Valid @ModelAttribute NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {

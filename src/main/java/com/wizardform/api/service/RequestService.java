@@ -14,5 +14,6 @@ public interface RequestService {
     RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto getRequestByRequestId(long requestId) throws RequestNotFoundException;
     void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException;
+    PagedResponseDto<RequestDto> getAllRequestByUserId(long userId, String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException, UserNotFoundException;
     RequestDto updateRequest(NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException;
 }
