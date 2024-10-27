@@ -5,6 +5,7 @@ import com.wizardform.api.dto.LoginRequestDto;
 import com.wizardform.api.dto.UserDto;
 import com.wizardform.api.dto.UserResponseDTO;
 import com.wizardform.api.exception.RoleNotFoundException;
+import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.service.JwtService;
 import com.wizardform.api.service.UserService;
 import jakarta.validation.Valid;
@@ -39,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDto loginRequestDto) throws UserNotFoundException {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));

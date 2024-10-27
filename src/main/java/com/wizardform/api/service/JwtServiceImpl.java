@@ -1,27 +1,41 @@
 package com.wizardform.api.service;
 
+import com.wizardform.api.exception.UserNotFoundException;
+import com.wizardform.api.model.User;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.AbstractMap;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtServiceImpl implements JwtService{
+public class JwtServiceImpl implements JwtService {
 
-    public String generateToken(UserDetails userDetails) {
+    @Autowired
+    private final UserService userService;
+
+    public JwtServiceImpl(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Override
+    public String generateToken(UserDetails userDetails) throws UserNotFoundException {
+        // Get existing user by username
+        User user = userService.getUserByEmail(userDetails.getUsername());
         Map<String, Object> claims = new HashMap<>();
-        claims.put("type", "Bearer");
+        claims.put("userId", user.getUserId());
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
         claims.put("roles", userDetails.getAuthorities());
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .addClaims(claims)
@@ -46,10 +60,12 @@ public class JwtServiceImpl implements JwtService{
         return Keys.hmacShaKeyFor(key);
     }
 
+    @Override
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUserName(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);

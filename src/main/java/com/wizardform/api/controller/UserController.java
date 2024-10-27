@@ -40,7 +40,7 @@ public class UserController {
 
     @PutMapping("ChangeRole")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> changeRole(@Valid ChangeRoleDto changeRoleDTO) throws RoleNotFoundException {
+    public ResponseEntity<?> changeRole(@Valid @RequestBody ChangeRoleDto changeRoleDTO) throws RoleNotFoundException {
         userService.changeRole(changeRoleDTO.getUserId(), changeRoleDTO.getRoleId());
         return ResponseEntity.ok().build();
     }
