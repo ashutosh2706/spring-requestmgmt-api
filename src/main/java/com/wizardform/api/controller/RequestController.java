@@ -55,8 +55,8 @@ public class RequestController {
     }
 
     @PutMapping("update")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> updateRequest(@Valid @ModelAttribute NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, FileDetailsNotFoundException, IOException {
         RequestDto response = requestService.updateRequest(newRequestDto);
         return ResponseEntity.ok(response);
     }

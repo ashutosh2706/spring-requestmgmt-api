@@ -118,7 +118,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public RequestDto updateRequest(NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, FileDetailsNotFoundException, IOException {
+    public RequestDto updateRequest(NewRequestDto newRequestDto) throws RequestNotFoundException, UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, FileDetailsNotFoundException, IOException {
         Optional<Request> requestOptional = requestRepository.findByRequestId(newRequestDto.getRequestId());
         if(requestOptional.isPresent()) {
 
@@ -126,6 +126,7 @@ public class RequestServiceImpl implements RequestService {
             FileDetail newFileDetail = null;
 
             Priority newPriority = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
+            Status newStatus = statusService.getStatusByStatusCode(newRequestDto.getStatusCode());
             User newUser = userService.getUserByUserId(newRequestDto.getUserId());
 
             Request existingRequest = requestOptional.get();
@@ -136,6 +137,7 @@ public class RequestServiceImpl implements RequestService {
             existingRequest.setPhone(newRequestDto.getPhone());
             existingRequest.setUser(newUser);
             existingRequest.setPriority(newPriority);
+            existingRequest.setStatus(newStatus);
 
             if(attachedFile != null) {
                 // existing file will be deleted along with it's details and new one will be copied and details saved to db
