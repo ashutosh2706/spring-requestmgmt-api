@@ -43,12 +43,12 @@ public class RequestServiceImpl implements RequestService {
     public PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException {
         // default sort field is requestId if none provided
         // validation check: if the value provided in sortField is a valid property or not
-        sortField = sortField.trim().isEmpty() ? "requestId" : sortField;
-        if(!isValidSortField(sortField)) {
+        String resolvedSortField = sortField.trim().isEmpty() ? "requestId" : resolveSortField(sortField);
+        if(resolvedSortField == null) {
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
-        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, resolvedSortField);
         PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
 
         Page<Request> requestPage = requestRepository.findAll(pageRequest);
@@ -64,12 +64,12 @@ public class RequestServiceImpl implements RequestService {
 
         // default sort field is requestId if none provided
         // validation check: if the value provided in sortField is a valid property or not
-        sortField = sortField.trim().isEmpty() ? "requestId" : sortField;
-        if(!isValidSortField(sortField)) {
+        String resolvedSortField = sortField.trim().isEmpty() ? "requestId" : resolveSortField(sortField);
+        if(resolvedSortField == null) {
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
-        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, resolvedSortField);
         PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
 
         Page<Request> requestPage = requestRepository.findByUser(existingUser, pageRequest);
@@ -165,9 +165,25 @@ public class RequestServiceImpl implements RequestService {
     }
 
     // use reflection to validate if the given sortField is present
-    private static boolean isValidSortField(String sortField) {
-        for(Field field: Request.class.getDeclaredFields()) {
-            if(field.getName().equals(sortField))
+    // start with validating parent class fields, if none matches then check for nested fields
+    // if sortField is found inside a nested instance field return it as [nestedField.field]
+    private static String resolveSortField(String sortField) {
+        if(isValidField(Request.class, sortField))
+            return sortField;
+
+        java.lang.Class<?> parentClass = Request.class;
+        Field[] fields = parentClass.getDeclaredFields();
+        for(Field field: fields) {
+            if(isValidField(field.getType(), sortField)) {
+                return field.getType().getSimpleName() + "." + sortField;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isValidField(Class<?> Class, String fieldName) {
+        for (Field field: Class.getDeclaredFields()) {
+            if(field.getName().equals(fieldName))
                 return true;
         }
         return false;

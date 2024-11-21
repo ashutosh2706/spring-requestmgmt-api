@@ -7,6 +7,7 @@ import com.wizardform.api.exception.RoleNotFoundException;
 import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.helper.Utils;
 import com.wizardform.api.mapper.UserMapper;
+import com.wizardform.api.model.Request;
 import com.wizardform.api.model.Role;
 import com.wizardform.api.model.User;
 import com.wizardform.api.repository.UserRepository;
@@ -41,12 +42,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public PagedResponseDto<UserResponseDTO> getAllUsers(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException {
 
-        sortField = sortField.trim().isEmpty() ? "userId" : sortField;
-        if(!isValidSortField(sortField)) {
+        String resolvedSortField = sortField.trim().isEmpty() ? "userId" : resolveSortField(sortField);
+        if(resolvedSortField == null) {
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
-        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, resolvedSortField);
         PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
         Page<User> userPage = userRepository.findAll(pageRequest);
         List<User> users = userPage.getContent();
@@ -144,9 +145,23 @@ public class UserServiceImpl implements UserService {
         };
     }
 
-    private static boolean isValidSortField(String sortField) {
-        for(Field field: User.class.getDeclaredFields()) {
-            if(field.getName().equals(sortField))
+    private static String resolveSortField(String sortField) {
+        if(isValidField(Request.class, sortField))
+            return sortField;
+
+        java.lang.Class<?> parentClass = Request.class;
+        Field[] fields = parentClass.getDeclaredFields();
+        for(Field field: fields) {
+            if(isValidField(field.getType(), sortField)) {
+                return field.getType().getSimpleName() + "." + sortField;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isValidField(Class<?> Class, String fieldName) {
+        for (Field field: Class.getDeclaredFields()) {
+            if(field.getName().equals(fieldName))
                 return true;
         }
         return false;
