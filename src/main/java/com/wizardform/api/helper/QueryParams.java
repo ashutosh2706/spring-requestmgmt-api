@@ -21,7 +21,7 @@ public class QueryParams {
     @Min(value = 1, message = "Page number should be >= 1")
     @Max(value = Integer.MAX_VALUE, message = "Page number should be under max integer limit")
     private int pageNumber = 1;
-    @Min(value = 5, message = "Page size should be >= 5")
-    @Max(value = 20, message = "Page size should be <= 20")
-    private int pageSize = 5;   // default page size is 5 records per page
+    @Min(value = 20, message = "Page size should be >= 20")
+    @Max(value = 200, message = "Page size should be <= 200")
+    private int pageSize = 15;   // default page size is 15 records per page
 }

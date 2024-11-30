@@ -3,8 +3,6 @@ package com.wizardform.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.Serial;
-
 @Entity
 @Getter
 @Setter
@@ -13,9 +11,6 @@ import java.io.Serial;
 @ToString
 @Table(name = "FileDetails")
 public class FileDetail {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
