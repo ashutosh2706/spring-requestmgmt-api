@@ -3,6 +3,7 @@ package com.wizardform.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
 import java.util.List;
 
 @Entity
@@ -13,6 +14,10 @@ import java.util.List;
 @ToString
 @Table(name = "Priority")
 public class Priority {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     private int priorityCode;
     @Column(nullable = false)

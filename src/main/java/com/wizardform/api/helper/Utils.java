@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Utils {
 
@@ -53,13 +51,6 @@ public class Utils {
             e.printStackTrace();
             return null;
         }
-    }
-
-    public static Map<String, String> createErrorResponse(String error, String message) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", error);
-        response.put("message", message);
-        return response;
     }
 
     public static String getContentType(String fileName) {

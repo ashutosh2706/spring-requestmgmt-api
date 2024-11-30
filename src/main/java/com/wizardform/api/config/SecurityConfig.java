@@ -1,8 +1,8 @@
 package com.wizardform.api.config;
 
-import com.wizardform.api.auth.JwtAccessDeniedHandler;
-import com.wizardform.api.auth.JwtAuthEntryPoint;
-import com.wizardform.api.auth.JwtAuthTokenFilter;
+import com.wizardform.api.auth.ResourceAccessDeniedHandler;
+import com.wizardform.api.auth.AuthEntryPoint;
+import com.wizardform.api.auth.JwtAuthFilter;
 import com.wizardform.api.helper.CustomPasswordEncoder;
 import com.wizardform.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +30,14 @@ public class SecurityConfig {
     private UserService userService;
 
     @Autowired
-    private JwtAuthEntryPoint unauthorizedHandler;
+    private AuthEntryPoint unauthorizedHandler;
 
     @Autowired
-    private JwtAccessDeniedHandler accessDeniedHandler;
+    private ResourceAccessDeniedHandler resourceAccessDeniedHandler;
 
     @Bean
-    public JwtAuthTokenFilter jwtAuthTokenFilter() {
-        return new JwtAuthTokenFilter();
+    public JwtAuthFilter jwtAuthTokenFilter() {
+        return new JwtAuthFilter();
     }
 
     private static final String[] WHITE_LISTED_PATHS = {"/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"};
@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
-        http.exceptionHandling(exception -> exception.accessDeniedHandler(accessDeniedHandler));
+        http.exceptionHandling(exception -> exception.accessDeniedHandler(resourceAccessDeniedHandler));
         http.csrf(AbstractHttpConfigurer::disable);
         http.authenticationProvider(authenticationProvider()).addFilterBefore(jwtAuthTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();

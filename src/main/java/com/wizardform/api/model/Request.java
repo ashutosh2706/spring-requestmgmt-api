@@ -3,6 +3,7 @@ package com.wizardform.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
 import java.time.LocalDate;
 
 @Entity
@@ -13,6 +14,9 @@ import java.time.LocalDate;
 @ToString
 @Table(name = "Requests")
 public class Request {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -52,7 +52,7 @@ public class AuthController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateToken(userDetails);
-        AuthTokenResponse tokenResponse = new AuthTokenResponse(jwt, 1500, "Bearer");
+        AuthTokenResponse tokenResponse = new AuthTokenResponse(jwt, 1800, "Bearer");
         return ResponseEntity.ok(tokenResponse);
     }
 
