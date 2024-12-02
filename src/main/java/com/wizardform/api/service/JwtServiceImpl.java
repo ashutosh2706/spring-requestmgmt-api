@@ -18,6 +18,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,19 +33,21 @@ import java.util.function.Function;
 
 @Component
 public class JwtServiceImpl implements JwtService {
-
-    @Autowired
     private final UserService userService;
+    @Value("${app.jwt.expiration}")
+    private long jwtExpiration;
 
     private static final String ENV_SIGN_KEY = "SIGN_KEY";
     private static final String ENV_ISSUER = "ISSUER";
 
+    @Autowired
     public JwtServiceImpl(UserService userService) {
         this.userService = userService;
     }
 
     @Override
     public String generateToken(UserDetails userDetails) throws UserNotFoundException {
+        System.out.println("Jwt Expiration: " + jwtExpiration);
         // Get existing user by username
         User user = userService.getUserByEmail(userDetails.getUsername());
         Map<String, Object> claims = new HashMap<>();
@@ -59,7 +62,7 @@ public class JwtServiceImpl implements JwtService {
                 .addClaims(claims)
                 .setIssuer(getIssuer())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (1000 * 60 * 30)))
+                .setExpiration(new Date(System.currentTimeMillis() + (jwtExpiration * 1000)))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
