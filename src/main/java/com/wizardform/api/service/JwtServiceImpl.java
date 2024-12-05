@@ -47,7 +47,6 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(UserDetails userDetails) throws UserNotFoundException {
-        System.out.println("Jwt Expiration: " + jwtExpiration);
         // Get existing user by username
         User user = userService.getUserByEmail(userDetails.getUsername());
         Map<String, Object> claims = new HashMap<>();

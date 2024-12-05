@@ -7,7 +7,6 @@ import com.wizardform.api.exception.ExpiredRefreshTokenException;
 import com.wizardform.api.exception.InvalidRefreshTokenException;
 import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.model.RefreshToken;
-import com.wizardform.api.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,11 +44,12 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
+    // refresh token will be rotated when a new access token is requested
     @Override
     public AuthResponseDto refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) throws InvalidRefreshTokenException, ExpiredRefreshTokenException, UserNotFoundException {
-        User user = refreshTokenService.getUserForRefreshToken(refreshTokenRequestDto.getToken());
-        String jwt = jwtService.generateToken(user);
-        return new AuthResponseDto(jwt, 300, "Bearer", refreshTokenRequestDto.getToken());
+        RefreshToken refreshToken = refreshTokenService.getRefreshTokenDetails(refreshTokenRequestDto.getToken());
+        String jwt = jwtService.generateToken(refreshToken.getUser());
+        return new AuthResponseDto(jwt, 300, "Bearer", refreshToken.getToken());
     }
 
 }

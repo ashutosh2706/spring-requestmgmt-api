@@ -30,7 +30,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken generateRefreshToken(String username) throws UserNotFoundException {
-        System.out.println(refreshTokenExpiration);
         User user = userService.getUserByEmail(username);
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
@@ -41,7 +40,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public User getUserForRefreshToken(String token) throws InvalidRefreshTokenException, ExpiredRefreshTokenException {
+    public RefreshToken getRefreshTokenDetails(String token) throws InvalidRefreshTokenException, ExpiredRefreshTokenException {
         Optional<RefreshToken> refreshToken = refreshTokenRepository.findByToken(token);
         if(refreshToken.isPresent()) {
             if(isRefreshTokenExpired(refreshToken.get())) {
@@ -49,12 +48,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 refreshTokenRepository.delete(refreshToken.get());
                 throw new ExpiredRefreshTokenException("Refresh token expired. Please authenticate to generate new token");
             }
-            return refreshToken.get().getUser();
+
+            return rotateToken(refreshToken.get());
+
         } else
             throw new InvalidRefreshTokenException("Refresh token is invalid. Please provide valid refresh token");
     }
 
     private boolean isRefreshTokenExpired(RefreshToken refreshToken) {
         return refreshToken.getExpirationInstant().compareTo(Instant.now()) < 0;
+    }
+
+    private RefreshToken rotateToken(RefreshToken existingToken) {
+        existingToken.setToken(UUID.randomUUID().toString());
+        existingToken.setExpirationInstant(Instant.now().plusMillis(refreshTokenExpiration * 1000));
+        return refreshTokenRepository.save(existingToken);
     }
 }
