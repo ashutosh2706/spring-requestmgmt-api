@@ -1,5 +1,6 @@
 package com.wizardform.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,15 +10,19 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AuthResponseDto {
 
-    private String access_token;
-    private long expires_in;
-    private String token_type;
-    private String refresh_token;
+    @JsonProperty("access_token")
+    private String accessToken;
+    @JsonProperty("expires")
+    private long expiresIn;
+    @JsonProperty("token_type")
+    private String tokenType;
+    @JsonProperty("refresh_token")
+    private String refreshToken;
 
     public AuthResponseDto(String token, long expiresIn, String tokenType, String refreshToken) {
-        this.access_token = token;
-        this.expires_in = expiresIn;
-        this.token_type = tokenType;
-        this.refresh_token = refreshToken;
+        this.accessToken = token;
+        this.expiresIn = expiresIn;
+        this.tokenType = tokenType;
+        this.refreshToken = refreshToken;
     }
 }
