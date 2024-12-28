@@ -5,14 +5,17 @@ import com.wizardform.api.exception.RoleNotFoundException;
 import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.helper.QueryParams;
 import com.wizardform.api.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
+@Tag(name = "User Controller", description = "Handles operations related to user management")
 @RestController
 @RequestMapping("api/users")
 public class UserController {
@@ -24,7 +27,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getAllUsers(@Valid @ModelAttribute QueryParams queryParams) throws IllegalArgumentException {
         PagedResponseDto<UserResponseDTO> response = userService.getAllUsers(queryParams.getSearchTerm(), queryParams.getPageNumber(), queryParams.getPageSize(), queryParams.getSortField(), queryParams.getSortDirection());
