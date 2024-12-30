@@ -6,6 +6,7 @@ import com.wizardform.api.mapper.StatusMapper;
 import com.wizardform.api.model.Status;
 import com.wizardform.api.repository.StatusRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class StatusServiceImpl implements StatusService {
 
     private final StatusRepository statusRepository;
@@ -33,7 +35,10 @@ public class StatusServiceImpl implements StatusService {
         Optional<Status> status = statusRepository.findByStatusCode(statusCode);
         if(status.isPresent()) {
             return status.get();
-        } else throw new StatusNotFoundException("Status code: " + statusCode + " was not found");
+        } else {
+            log.error("StatusNotFoundException: No status found with statusCode {}", statusCode);
+            throw new StatusNotFoundException("Status code: " + statusCode + " was not found");
+        }
     }
 
     @Override
@@ -63,7 +68,10 @@ public class StatusServiceImpl implements StatusService {
         Optional<Status> existingStatus = statusRepository.findByStatusCode(statusCode);
         if(existingStatus.isPresent()) {
             statusRepository.delete(existingStatus.get());
-        } else throw new StatusNotFoundException("Status code: " + statusCode + " was not found");
+        } else {
+            log.error("StatusNotFoundException: No status found with statusCode {}", statusCode);
+            throw new StatusNotFoundException("Status code: " + statusCode + " was not found");
+        }
     }
 
 }

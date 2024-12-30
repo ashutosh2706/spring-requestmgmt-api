@@ -1,0 +1,30 @@
+<configuration>
+    <appender name = "consoleAppender" class = "ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} :: %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name = "fileAppender" class = "ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>
+            logs/c.w.api.log
+        </file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <maxFileSize>100KB</maxFileSize>
+            <!--<maxHistory>20</maxHistory>-->
+            <fileNamePattern>logs/c.w.api-%d{yyyy-MM-dd}.log%i</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} :: %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level = "INFO">
+        <appender-ref ref="consoleAppender" />
+        <appender-ref ref="fileAppender" />
+    </root>
+</configuration>

@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -97,6 +99,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private void validateJwtTokenRegex(final String authHeader) throws UnauthorizedServiceException {
         Matcher tokenMatcher = JWT_TOKEN_PATTERN.matcher(authHeader);
         if(!tokenMatcher.matches()) {
+            log.error("UnauthorizedServiceException: Invalid JWT {}", authHeader);
             throw new UnauthorizedServiceException("Invalid Token");
         }
     }

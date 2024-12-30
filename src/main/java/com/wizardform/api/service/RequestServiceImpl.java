@@ -17,6 +17,7 @@ import com.wizardform.api.model.User;
 import com.wizardform.api.model.Status;
 import com.wizardform.api.repository.RequestRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
@@ -53,6 +55,7 @@ public class RequestServiceImpl implements RequestService {
         // validation check: if the value provided in sortField is a valid property or not
         String resolvedSortField = sortField.trim().isEmpty() ? "requestId" : resolveSortField(sortField);
         if(resolvedSortField == null) {
+            log.error("IllegalArgumentException: Invalid sort parameter {}", sortField);
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
@@ -74,6 +77,7 @@ public class RequestServiceImpl implements RequestService {
         // validation check: if the value provided in sortField is a valid property or not
         String resolvedSortField = sortField.trim().isEmpty() ? "requestId" : resolveSortField(sortField);
         if(resolvedSortField == null) {
+            log.error("IllegalArgumentException: Invalid sort parameter {}", sortField);
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
@@ -112,7 +116,10 @@ public class RequestServiceImpl implements RequestService {
             Request savedRequest = requestRepository.save(newRequest);
             return RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
 
-        } else throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
+        } else {
+            log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
+            throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
+        }
     }
 
     @Override
@@ -121,7 +128,10 @@ public class RequestServiceImpl implements RequestService {
         if(requestOptional.isPresent()) {
             Request request = requestOptional.get();
             return RequestMapper.INSTANCE.requestToRequestDto(request);
-        } else throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
+        } else {
+            log.error("RequestNotFoundException: No request found with requestId {}", requestId);
+            throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
+        }
     }
 
     @Override
@@ -158,7 +168,10 @@ public class RequestServiceImpl implements RequestService {
             Request updatedRequest = requestRepository.save(existingRequest);
             return RequestMapper.INSTANCE.requestToRequestDto(updatedRequest);
 
-        } else throw new RequestNotFoundException("Request with id: " + newRequestDto.getRequestId() + " was not found");
+        } else {
+            log.error("RequestNotFoundException: No request found with requestId {}", newRequestDto.getRequestId());
+            throw new RequestNotFoundException("Request with id: " + newRequestDto.getRequestId() + " was not found");
+        }
     }
 
     @Override
@@ -169,7 +182,10 @@ public class RequestServiceImpl implements RequestService {
             // first delete the request and then file details (mark the order)
             requestRepository.delete(requestOptional.get());
             fileService.deleteFileDetails(requestOptional.get().getFileDetail().getFileId());
-        } else throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
+        } else {
+            log.error("RequestNotFoundException: No request found with requestId {}", requestId);
+            throw new RequestNotFoundException("Request with id: " + requestId + " was not found");
+        }
     }
 
     // use reflection to validate if the given sortField is present

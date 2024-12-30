@@ -6,6 +6,7 @@ import com.wizardform.api.mapper.RoleMapper;
 import com.wizardform.api.model.Role;
 import com.wizardform.api.repository.RoleRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
@@ -33,7 +35,10 @@ public class RoleServiceImpl implements RoleService {
         Optional<Role> role = roleRepository.findByRoleId(roleId);
         if(role.isPresent()) {
             return role.get();
-        } else throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        } else {
+            log.error("RoleNotFoundException: No role was found with roleId {}", roleId);
+            throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        }
     }
 
     @Override
@@ -41,7 +46,10 @@ public class RoleServiceImpl implements RoleService {
         Optional<Role> role = roleRepository.findByRoleId(roleId);
         if(role.isPresent()) {
             return role.get().getRoleType();
-        } else throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        } else {
+            log.error("RoleNotFoundException: No role was found with roleId {}", roleId);
+            throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        }
 
     }
 
@@ -73,6 +81,9 @@ public class RoleServiceImpl implements RoleService {
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
         if(existingRole.isPresent()) {
             roleRepository.delete(existingRole.get());
-        } else throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        } else {
+            log.error("RoleNotFoundException: No role was found with roleId {}", roleId);
+            throw new RoleNotFoundException("Role with id: " + roleId + " was not found");
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.wizardform.api.helper.Utils;
 import com.wizardform.api.model.FileDetail;
 import com.wizardform.api.repository.FileDetailRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +18,7 @@ import static com.wizardform.api.Constants.ROOT_PATH;
 import static com.wizardform.api.Constants.UPLOAD_DIR;
 
 @Component
+@Slf4j
 public class FileServiceImpl implements FileService {
 
     private final FileDetailRepository fileDetailRepository;
@@ -57,7 +59,10 @@ public class FileServiceImpl implements FileService {
         Optional<FileDetail> fileDetailsOptional = fileDetailRepository.findByFileId(fileId);
         if(fileDetailsOptional.isPresent()) {
             return fileDetailsOptional.get();
-        } else throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
+        } else {
+            log.error("FileDetailsNotFoundException: No file details found for fileId {}", fileId);
+            throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
+        }
     }
 
     @Override
@@ -72,6 +77,9 @@ public class FileServiceImpl implements FileService {
             if(attachment.exists()) {
                 attachment.delete();
             }
-        } else throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
+        } else {
+            log.error("FileDetailsNotFoundException: No file details found for fileId {}", fileId);
+            throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
+        }
     }
 }

@@ -6,6 +6,7 @@ import com.wizardform.api.mapper.PriorityMapper;
 import com.wizardform.api.model.Priority;
 import com.wizardform.api.repository.PriorityRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class PriorityServiceImpl implements PriorityService {
 
     private final PriorityRepository priorityRepository;
@@ -33,7 +35,10 @@ public class PriorityServiceImpl implements PriorityService {
         Optional<Priority> priority = priorityRepository.findByPriorityCode(priorityCode);
         if(priority.isPresent()) {
             return priority.get();
-        } else throw new PriorityNotFoundException("Priority with code: " + priorityCode + " was not found");
+        } else {
+            log.error("PriorityNotFoundException: No priority found with code {}", priorityCode);
+            throw new PriorityNotFoundException("Priority with code: " + priorityCode + " was not found");
+        }
     }
 
     @Override
@@ -64,6 +69,9 @@ public class PriorityServiceImpl implements PriorityService {
         Optional<Priority> existingPriority = priorityRepository.findByPriorityCode(priorityCode);
         if(existingPriority.isPresent()) {
             priorityRepository.delete(existingPriority.get());
-        } else throw new PriorityNotFoundException("Priority with code: " + priorityCode + " was not found");
+        } else {
+            log.error("PriorityNotFoundException: No priority found with code {}", priorityCode);
+            throw new PriorityNotFoundException("Priority with code: " + priorityCode + " was not found");
+        }
     }
 }

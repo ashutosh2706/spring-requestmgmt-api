@@ -13,6 +13,7 @@ import com.wizardform.api.model.User;
 import com.wizardform.api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
 
         String resolvedSortField = sortField.trim().isEmpty() ? "userId" : resolveSortField(sortField);
         if(resolvedSortField == null) {
+            log.error("IllegalArgumentException: Invalid sort parameter {}", sortField);
             throw new IllegalArgumentException("Invalid sort field: " + sortField);
         }
 
@@ -74,7 +77,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByUserId(long userId) throws UserNotFoundException {
         Optional<User> optionalUser = userRepository.findByUserId(userId);
-        return optionalUser.orElseThrow(() -> new UserNotFoundException("User with id (" + userId + ") was not found"));
+        return optionalUser.orElseThrow(() -> {
+            log.error("UserNotFoundException: No user was found with userId {}", userId);
+            return new UserNotFoundException("User with id (" + userId + ") was not found");
+        });
     }
 
     @Override
@@ -85,7 +91,10 @@ public class UserServiceImpl implements UserService {
             User user = existingUser.get();
             user.setRole(role);
             userRepository.save(user);
-        } else throw new EntityNotFoundException("Requested entity was not found.");
+        } else {
+            log.error("EntityNotFoundException: Role with roleId {} and/or User with userId {} was not found", roleId, userId);
+            throw new EntityNotFoundException("Requested entity was not found.");
+        }
     }
 
     @Override
@@ -98,7 +107,10 @@ public class UserServiceImpl implements UserService {
             user.setRole(existingRole);
             User savedUser = userRepository.save(user);
             return UserMapper.INSTANCE.userToUserResponseDTO(savedUser);
-        } else throw new RoleNotFoundException("Role with id: " + userDTO.getRoleId() + " does not exist");
+        } else {
+            log.error("RoleNotFoundException: No role was found with roleId {}", userDTO.getRoleId());
+            throw new RoleNotFoundException("Role with id: " + userDTO.getRoleId() + " does not exist");
+        }
     }
 
     @Override
@@ -109,7 +121,10 @@ public class UserServiceImpl implements UserService {
             User user = existingUser.get();
             user.setIsActive(!user.getIsActive());
             userRepository.save(user);
-        } else throw new UserNotFoundException("User with id: " + userId + " was not found");
+        } else {
+            log.error("UserNotFoundException: No user found with userId {}", userId);
+            throw new UserNotFoundException("User with id: " + userId + " was not found");
+        }
     }
 
     @Override
@@ -118,7 +133,10 @@ public class UserServiceImpl implements UserService {
         Optional<User> existingUser = userRepository.findByUserId(userId);
         if(existingUser.isPresent()) {
             userRepository.delete(existingUser.get());
-        } else throw new UserNotFoundException("User with id: " + userId + " was not found");
+        } else {
+            log.error("UserNotFoundException: No user found with userId {}", userId);
+            throw new UserNotFoundException("User with id: " + userId + " was not found");
+        }
     }
 
     /**
@@ -130,7 +148,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) throws UserNotFoundException {
         Optional<User> optionalUser = userRepository.findByEmail(email);
-        return optionalUser.orElseThrow(() -> new UserNotFoundException("User with email (" + email + ") was not found"));
+        return optionalUser.orElseThrow(() -> {
+            log.error("UserNotFoundException: No user found with email {}", email);
+            return new UserNotFoundException("User with email (" + email + ") was not found");
+        });
     }
 
     // Service for security config
@@ -140,7 +161,10 @@ public class UserServiceImpl implements UserService {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
                 Optional<User> optionalUser = userRepository.findByEmail(username);
-                return optionalUser.orElseThrow(() -> new UsernameNotFoundException("User with email (" + username + ") was not found"));
+                return optionalUser.orElseThrow(() -> {
+                    log.error("UsernameNotFoundException: No user found with email {}", username);
+                    return new UsernameNotFoundException("User with email (" + username + ") was not found");
+                });
             }
         };
     }

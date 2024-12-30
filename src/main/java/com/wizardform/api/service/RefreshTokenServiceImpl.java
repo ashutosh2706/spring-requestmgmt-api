@@ -6,6 +6,7 @@ import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.model.RefreshToken;
 import com.wizardform.api.model.User;
 import com.wizardform.api.repository.RefreshTokenRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
+@Slf4j
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -46,13 +48,16 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             if(isRefreshTokenExpired(refreshToken.get())) {
                 // delete the token from db if expired
                 refreshTokenRepository.delete(refreshToken.get());
+                log.error("ExpiredRefreshTokenException: Token expired {}", refreshToken.get());
                 throw new ExpiredRefreshTokenException("Refresh token expired. Please authenticate to generate new token");
             }
 
             return rotateToken(refreshToken.get());
 
-        } else
+        } else {
+            log.error("InvalidRefreshTokenException: Token invalid {}", refreshToken.get());
             throw new InvalidRefreshTokenException("Refresh token is invalid. Please provide valid refresh token");
+        }
     }
 
     private boolean isRefreshTokenExpired(RefreshToken refreshToken) {

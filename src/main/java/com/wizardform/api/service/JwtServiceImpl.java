@@ -17,6 +17,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class JwtServiceImpl implements JwtService {
     private final UserService userService;
     @Value("${app.jwt.expiration}")
@@ -81,14 +83,19 @@ public class JwtServiceImpl implements JwtService {
                     .getBody();
 
         } catch (UnsupportedJwtException e) {
+            log.error("UnsupportedJwtException: {}", e.getMessage());
             throw new UnauthorizedServiceException("UnsupportedJwtException", e.getMessage(), e);
         } catch (MalformedJwtException e) {
+            log.error("MalformedJwtException: {}", e.getMessage());
             throw new UnauthorizedServiceException("MalformedJwtException", e.getMessage(), e);
         } catch (SignatureException e) {
+            log.error("SignatureException: {}", e.getMessage());
             throw new UnauthorizedServiceException("SignatureException", e.getMessage(), e);
         } catch (ExpiredJwtException e) {
+            log.error("ExpiredJwtException: {}", e.getMessage());
             throw new UnauthorizedServiceException("ExpiredJwtException", e.getMessage(), e);
         } catch (IllegalArgumentException e) {
+            log.error("IllegalArgumentException: {}", e.getMessage());
             throw new UnauthorizedServiceException("IllegalArgumentException", e.getMessage(), e);
         }
     }
