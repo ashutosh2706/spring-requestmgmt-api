@@ -1,4 +1,4 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.Constants;
 import com.wizardform.api.dto.PagedResponseDto;
@@ -16,6 +16,11 @@ import com.wizardform.api.model.Request;
 import com.wizardform.api.model.User;
 import com.wizardform.api.model.Status;
 import com.wizardform.api.repository.RequestRepository;
+import com.wizardform.api.service.RequestService;
+import com.wizardform.api.service.StatusService;
+import com.wizardform.api.service.PriorityService;
+import com.wizardform.api.service.UserService;
+import com.wizardform.api.service.FileService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

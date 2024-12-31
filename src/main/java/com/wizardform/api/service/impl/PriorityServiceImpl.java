@@ -1,10 +1,11 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.dto.PriorityDto;
 import com.wizardform.api.exception.PriorityNotFoundException;
 import com.wizardform.api.mapper.PriorityMapper;
 import com.wizardform.api.model.Priority;
 import com.wizardform.api.repository.PriorityRepository;
+import com.wizardform.api.service.PriorityService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

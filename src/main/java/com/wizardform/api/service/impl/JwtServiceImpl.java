@@ -1,4 +1,4 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wizardform.api.exception.ErrorResponse;
@@ -6,6 +6,8 @@ import com.wizardform.api.exception.UnauthorizedServiceException;
 import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.model.User;
 
+import com.wizardform.api.service.JwtService;
+import com.wizardform.api.service.UserService;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

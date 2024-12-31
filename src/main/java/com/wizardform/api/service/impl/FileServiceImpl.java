@@ -1,9 +1,10 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.exception.FileDetailsNotFoundException;
 import com.wizardform.api.helper.Utils;
 import com.wizardform.api.model.FileDetail;
 import com.wizardform.api.repository.FileDetailRepository;
+import com.wizardform.api.service.FileService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

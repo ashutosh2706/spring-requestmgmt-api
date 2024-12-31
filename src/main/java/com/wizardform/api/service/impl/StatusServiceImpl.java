@@ -1,10 +1,11 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.dto.StatusDto;
 import com.wizardform.api.exception.StatusNotFoundException;
 import com.wizardform.api.mapper.StatusMapper;
 import com.wizardform.api.model.Status;
 import com.wizardform.api.repository.StatusRepository;
+import com.wizardform.api.service.StatusService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

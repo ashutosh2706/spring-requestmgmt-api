@@ -1,4 +1,4 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.exception.ExpiredRefreshTokenException;
 import com.wizardform.api.exception.InvalidRefreshTokenException;
@@ -6,6 +6,8 @@ import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.model.RefreshToken;
 import com.wizardform.api.model.User;
 import com.wizardform.api.repository.RefreshTokenRepository;
+import com.wizardform.api.service.RefreshTokenService;
+import com.wizardform.api.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,10 +1,11 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.dto.RoleDto;
 import com.wizardform.api.exception.RoleNotFoundException;
 import com.wizardform.api.mapper.RoleMapper;
 import com.wizardform.api.model.Role;
 import com.wizardform.api.repository.RoleRepository;
+import com.wizardform.api.service.RoleService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

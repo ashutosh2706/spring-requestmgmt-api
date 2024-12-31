@@ -1,4 +1,4 @@
-package com.wizardform.api.service;
+package com.wizardform.api.service.impl;
 
 import com.wizardform.api.dto.PagedResponseDto;
 import com.wizardform.api.dto.UserDto;
@@ -11,6 +11,8 @@ import com.wizardform.api.model.Request;
 import com.wizardform.api.model.Role;
 import com.wizardform.api.model.User;
 import com.wizardform.api.repository.UserRepository;
+import com.wizardform.api.service.RoleService;
+import com.wizardform.api.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
