@@ -39,4 +39,4 @@ build/
 *.env
 
 ### properties ###
-*.properties
+application.properties
