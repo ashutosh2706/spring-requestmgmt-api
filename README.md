@@ -90,6 +90,11 @@ The API handles exceptions globally using a **Global Exception Handler**. This e
 - **Custom Exceptions**:
     - Custom exceptions (e.g., `ResourceNotFoundException`, `UnauthorizedServiceException`) are defined to handle specific error cases.
 
+## Database ER Diagram
+
+![com.wizardform.api.ER.Diagram.png](wizard.form.api.ER-Diagram.png)
+
+
 ## Getting Started
 
 ### Prerequisites
