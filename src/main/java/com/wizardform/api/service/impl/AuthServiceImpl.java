@@ -1,5 +1,6 @@
 package com.wizardform.api.service.impl;
 
+import com.wizardform.api.Constants;
 import com.wizardform.api.dto.AuthResponseDto;
 import com.wizardform.api.dto.AuthRequestDto;
 import com.wizardform.api.dto.RefreshTokenRequestDto;
@@ -12,6 +13,7 @@ import com.wizardform.api.service.AuthService;
 import com.wizardform.api.service.JwtService;
 import com.wizardform.api.service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +27,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    @Value("${app.jwt.expiration}")
+    private long jwtExpiration;
 
     @Autowired
     public AuthServiceImpl(AuthenticationManager authenticationManager, JwtService jwtService, RefreshTokenService refreshTokenService) {
@@ -40,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtService.generateToken(userDetails);
             RefreshToken refreshToken = refreshTokenService.generateRefreshToken(authRequestDto.getEmail());
-            AuthResponseDto authResponse = new AuthResponseDto(jwt, 300, "Bearer", refreshToken.getToken());
+            AuthResponseDto authResponse = new AuthResponseDto(jwt, jwtExpiration, Constants.BEARER_TOKEN, refreshToken.getToken());
             return authResponse;
         }
 
@@ -52,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDto refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) throws InvalidRefreshTokenException, ExpiredRefreshTokenException, UserNotFoundException {
         RefreshToken refreshToken = refreshTokenService.getRefreshTokenDetails(refreshTokenRequestDto.getToken());
         String jwt = jwtService.generateToken(refreshToken.getUser());
-        return new AuthResponseDto(jwt, 300, "Bearer", refreshToken.getToken());
+        return new AuthResponseDto(jwt, jwtExpiration, Constants.BEARER_TOKEN, refreshToken.getToken());
     }
 
 }

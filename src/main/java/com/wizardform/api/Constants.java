@@ -4,6 +4,7 @@ public final class Constants {
 
     public static final String UPLOAD_DIR = "Attachments";
     public static final String ROOT_PATH = System.getProperty("user.dir");
+    public static final String BEARER_TOKEN = "Bearer";
 
     public static final class StatusCode {
         public static final int STATUS_PENDING = 1;
