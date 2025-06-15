@@ -16,6 +16,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -104,7 +105,8 @@ public class JwtServiceImpl implements JwtService {
 
     private Key getSignKey() {
         Dotenv dotenv = Dotenv.load();
-        byte[] key = Decoders.BASE64.decode(dotenv.get(ENV_SIGN_KEY));
+//        byte[] key = Decoders.BASE64.decode(Encoders.BASE64.encode("".getBytes()));
+        byte[] key = dotenv.get(ENV_SIGN_KEY).getBytes();
         return Keys.hmacShaKeyFor(key);
     }
 

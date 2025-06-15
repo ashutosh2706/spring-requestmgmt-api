@@ -37,6 +37,3 @@ build/
 ### keystore ###
 *.p12
 *.env
-
-### properties ###
-application.properties
