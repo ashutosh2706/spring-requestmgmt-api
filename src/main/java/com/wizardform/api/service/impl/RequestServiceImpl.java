@@ -95,7 +95,10 @@ public class RequestServiceImpl implements RequestService {
         return new PagedResponseDto<>(pageNumber, requestPage.getNumberOfElements(), requestPage.getTotalPages(), requestPage.getTotalElements(), userRequestDtoList);
     }
 
+    /// We use transactional when we want to perform all the operations as a single unit
+    /// This is done to ensure atomicity of operations and to keep the db in a consistent state
     @Override
+    @Transactional
     public RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
         Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 
