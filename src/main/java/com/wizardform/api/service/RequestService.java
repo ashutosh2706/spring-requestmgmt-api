@@ -7,11 +7,12 @@ import com.wizardform.api.exception.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public interface RequestService {
     PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException;
-    RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
+    CompletableFuture<RequestDto> addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto getRequestByRequestId(long requestId) throws RequestNotFoundException;
     void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException;
     PagedResponseDto<RequestDto> getAllRequestByUserId(long userId, String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException, UserNotFoundException;

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "Request Controller", description = "Handles operations related to request management")
 @RestController
@@ -43,10 +44,11 @@ public class RequestController {
 
     @PostMapping(value = "add", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
+    public CompletableFuture<ResponseEntity<?>> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
             throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException {
-        RequestDto addedRequest = requestService.addNewRequest(newRequestDto);
-        return ResponseEntity.created(URI.create("/requests")).body(addedRequest);
+        CompletableFuture<RequestDto> futureRequest = requestService.addNewRequest(newRequestDto);
+        return futureRequest.thenApply(addedRequest ->
+                ResponseEntity.created(URI.create("/requests")).body(addedRequest));
     }
 
     @GetMapping(value = "{requestId}", produces = MediaType.APPLICATION_JSON_VALUE)

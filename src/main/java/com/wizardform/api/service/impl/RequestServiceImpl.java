@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -99,7 +101,8 @@ public class RequestServiceImpl implements RequestService {
     /// This is done to ensure atomicity of operations and to keep the db in a consistent state
     @Override
     @Transactional
-    public RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
+    @Async("async-request-executor")
+    public CompletableFuture<RequestDto> addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
         Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 
         // To handle the attached file
@@ -122,7 +125,16 @@ public class RequestServiceImpl implements RequestService {
             newRequest.setFileDetail(savedFileDetail);
 
             Request savedRequest = requestRepository.save(newRequest);
-            return RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
+            RequestDto requestDto = RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
+
+            /// log the thread name which is handling this task
+            log.info("Thread handling async request operations: {}", Thread.currentThread().getName());
+            try {
+                // simulate delay
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {}
+
+            return CompletableFuture.completedFuture(requestDto);
 
         } else {
             log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
