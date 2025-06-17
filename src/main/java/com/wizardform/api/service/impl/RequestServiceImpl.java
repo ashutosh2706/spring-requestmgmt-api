@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -101,7 +102,7 @@ public class RequestServiceImpl implements RequestService {
     /// This is done to ensure atomicity of operations and to keep the db in a consistent state
     @Override
     @Transactional
-    @Async("async-request-executor")
+    @Async
     public CompletableFuture<RequestDto> addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
         Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 
