@@ -76,6 +76,35 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
+    public RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
+
+        Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
+        MultipartFile attachedFile = newRequestDto.getAttachedFile();
+        FileDetail savedFileDetail = null;
+        User userFromDb = userService.getUserByUserId(newRequestDto.getUserId());
+        Priority priorityFromDb = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
+        Status statusFromDb = statusService.getStatusByStatusCode(Constants.StatusCode.STATUS_PENDING);
+        if(userFromDb.isEnabled()) {
+            if(attachedFile != null) {
+                savedFileDetail = fileService.saveFile(attachedFile);
+            }
+            newRequest.setUser(userFromDb);
+            newRequest.setPriority(priorityFromDb);
+            newRequest.setStatus(statusFromDb);
+            newRequest.setFileDetail(savedFileDetail);
+
+            Request savedRequest = requestRepository.save(newRequest);
+            RequestDto requestDto = RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
+            return requestDto;
+
+        } else {
+            log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
+            throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
+        }
+    }
+
+    @Override
     public PagedResponseDto<RequestDto> getAllRequestByUserId(long userId, String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException, UserNotFoundException {
 
         User existingUser = userService.getUserByUserId(userId);
@@ -102,7 +131,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     @Async("async-request-executor")
-    public CompletableFuture<RequestDto> addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
+    public CompletableFuture<RequestDto> addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
         Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
 
         // To handle the attached file

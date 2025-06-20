@@ -42,13 +42,12 @@ public class RequestController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(value = "add", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ROLE_USER')")
-    public CompletableFuture<ResponseEntity<?>> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
+    public ResponseEntity<?> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
             throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException {
-        CompletableFuture<RequestDto> futureRequest = requestService.addNewRequest(newRequestDto);
-        return futureRequest.thenApply(addedRequest ->
-                ResponseEntity.created(URI.create("/requests")).body(addedRequest));
+        RequestDto request = requestService.addNewRequest(newRequestDto);
+        return ResponseEntity.created(URI.create("/requests")).body(request);
     }
 
     @GetMapping(value = "{requestId}", produces = MediaType.APPLICATION_JSON_VALUE)
