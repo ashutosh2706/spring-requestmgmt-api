@@ -22,4 +22,12 @@ public final class Constants {
         public static final int ROLE_USER = 1;
         public static final int ROLE_ADMIN = 2;
     }
+
+    public static final class WorkerResultCode {
+        public static final int WORKER_RESULT_SUCCESS = 1;
+        public static final int WORKER_RESULT_PENDING = 2;
+        public static final int WORKER_RESULT_ERROR = 3;
+        public static final int WORKER_RESULT_FAILURE = 4;
+        public static final int WORKER_RESULT_INTERRUPTED = 5;
+    }
 }

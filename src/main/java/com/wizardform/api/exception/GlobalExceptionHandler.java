@@ -115,6 +115,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(createErrorResponse("ExpiredRefreshTokenException", e.getMessage(), HttpStatus.GONE), HttpStatus.GONE);
     }
 
+    @ExceptionHandler(CallbackAbsentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleCallbackAbsentException(Exception e) {
+        return new ResponseEntity<>(createErrorResponse("CallbackAbsentException", e.getMessage(), HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleGeneralException(Exception e) {

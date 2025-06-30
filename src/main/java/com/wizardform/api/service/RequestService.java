@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public interface RequestService {
     PagedResponseDto<RequestDto> getAllRequests(String searchTerm, int pageNumber, int pageSize, String sortField, String sortDirection) throws IllegalArgumentException;
-    CompletableFuture<RequestDto> addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
+    void addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto addNewRequest(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException;
     RequestDto getRequestByRequestId(long requestId) throws RequestNotFoundException;
     void deleteRequest(long requestId) throws RequestNotFoundException, FileDetailsNotFoundException;

@@ -16,7 +16,7 @@ public class AsyncConfig {
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("async-request-th-");
+        executor.setThreadNamePrefix("WorkerExecutor-");
         executor.initialize();
         return new DelegatingSecurityContextAsyncTaskExecutor(executor);
     }

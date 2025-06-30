@@ -30,6 +30,7 @@ public interface RequestMapper {
     @Mapping(source = "priority.description", target = "priority")
     @Mapping(source = "status.description", target = "status")
     @Mapping(source = "fileDetail.fileId", target = "documentId")
+    @Mapping(target = "callbackUrl", ignore = true)
     RequestDto requestToRequestDto(Request request);
 
 }

@@ -4,18 +4,24 @@ import com.wizardform.api.Constants;
 import com.wizardform.api.dto.PagedResponseDto;
 import com.wizardform.api.dto.NewRequestDto;
 import com.wizardform.api.dto.RequestDto;
-import com.wizardform.api.exception.PriorityNotFoundException;
-import com.wizardform.api.exception.StatusNotFoundException;
+import com.wizardform.api.dto.WorkerResultDto;
 import com.wizardform.api.exception.UserNotFoundException;
-import com.wizardform.api.exception.RequestNotFoundException;
+import com.wizardform.api.exception.StatusNotFoundException;
+import com.wizardform.api.exception.PriorityNotFoundException;
 import com.wizardform.api.exception.FileDetailsNotFoundException;
+import com.wizardform.api.exception.RequestNotFoundException;
+import com.wizardform.api.exception.CallbackAbsentException;
 import com.wizardform.api.mapper.RequestMapper;
 import com.wizardform.api.model.FileDetail;
 import com.wizardform.api.model.Priority;
 import com.wizardform.api.model.Request;
 import com.wizardform.api.model.User;
 import com.wizardform.api.model.Status;
+import com.wizardform.api.model.worker.WorkerCallback;
+import com.wizardform.api.model.worker.WorkerResult;
 import com.wizardform.api.repository.RequestRepository;
+import com.wizardform.api.repository.WorkerCallbackRepository;
+import com.wizardform.api.repository.WorkerResultRepository;
 import com.wizardform.api.service.RequestService;
 import com.wizardform.api.service.StatusService;
 import com.wizardform.api.service.PriorityService;
@@ -23,6 +29,8 @@ import com.wizardform.api.service.UserService;
 import com.wizardform.api.service.FileService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +43,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -46,14 +53,20 @@ public class RequestServiceImpl implements RequestService {
     private final PriorityService priorityService;
     private final UserService userService;
     private final FileService fileService;
+    private final WorkerCallbackRepository workerCallbackRepository;
+    private final WorkerResultRepository workerResultRepository;
+    private final CallbackNotifier callbackNotifier;
 
     @Autowired
-    public RequestServiceImpl(RequestRepository requestRepository, PriorityService priorityService, StatusService statusService, UserService userService, FileService fileService) {
+    public RequestServiceImpl(RequestRepository requestRepository, PriorityService priorityService, StatusService statusService, UserService userService, FileService fileService, WorkerCallbackRepository workerCallbackRepository, WorkerResultRepository workerResultRepository, CallbackNotifier callbackNotifier) {
         this.requestRepository = requestRepository;
         this.priorityService = priorityService;
         this.statusService = statusService;
         this.userService = userService;
         this.fileService = fileService;
+        this.workerCallbackRepository = workerCallbackRepository;
+        this.workerResultRepository = workerResultRepository;
+        this.callbackNotifier = callbackNotifier;
     }
 
     @Override
@@ -130,45 +143,83 @@ public class RequestServiceImpl implements RequestService {
     /// This is done to ensure atomicity of operations and to keep the db in a consistent state
     @Override
     @Transactional
-    @Async("async-request-executor")
-    public CompletableFuture<RequestDto> addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
-        Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
+    @Async
+    public void addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
 
-        // To handle the attached file
-        MultipartFile attachedFile = newRequestDto.getAttachedFile();
-        FileDetail savedFileDetail = null;
+        log.info("Task is being executed by thread: {}", Thread.currentThread().getName());
+        /// get all worker results
+        WorkerResult pendingResult = workerResultRepository.findByResultId(Constants.WorkerResultCode.WORKER_RESULT_PENDING).orElseThrow(() -> new RuntimeException("Can't fetch Worker Result. See inner exception for details"));
+        WorkerResult successResult = workerResultRepository.findByResultId(Constants.WorkerResultCode.WORKER_RESULT_SUCCESS).orElseThrow(() -> new RuntimeException("Can't fetch Worker Result. See inner exception for details"));
+        WorkerResult errorResult = workerResultRepository.findByResultId(Constants.WorkerResultCode.WORKER_RESULT_ERROR).orElseThrow(() -> new RuntimeException("Can't fetch Worker Result. See inner exception for details"));
+        WorkerResult interruptedResult = workerResultRepository.findByResultId(Constants.WorkerResultCode.WORKER_RESULT_INTERRUPTED).orElseThrow(() -> new RuntimeException("Can't fetch Worker Result. See inner exception for details"));
 
-        // new request status is always pending by default unless changed
-        // priorityCode & userId will be provided by user
-        User userFromDb = userService.getUserByUserId(newRequestDto.getUserId());
-        Priority priorityFromDb = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
-        Status statusFromDb = statusService.getStatusByStatusCode(Constants.StatusCode.STATUS_PENDING);
-        if(userFromDb.isEnabled()) {
-            if(attachedFile != null) {
-                // call FileDetail service with multipart file argument. It will copy the file, save the details to db and return the FileDetail entity
-                savedFileDetail = fileService.saveFile(attachedFile);
+        WorkerCallback callback = new WorkerCallback();
+        callback.setCallbackUrl(newRequestDto.getCallbackUrl());
+        callback.setWorkerResult(pendingResult);
+        WorkerCallback pendingCallback = workerCallbackRepository.save(callback);
+
+        try {
+            Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
+
+            // To handle the attached file
+            MultipartFile attachedFile = newRequestDto.getAttachedFile();
+            FileDetail savedFileDetail = null;
+
+            Thread.sleep(20000);
+
+            // new request status is always pending by default unless changed
+            // priorityCode & userId will be provided by user
+            User userFromDb = userService.getUserByUserId(newRequestDto.getUserId());
+            Priority priorityFromDb = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
+            Status statusFromDb = statusService.getStatusByStatusCode(Constants.StatusCode.STATUS_PENDING);
+            if(userFromDb.isEnabled()) {
+                if(attachedFile != null) {
+                    // call FileDetail service with multipart file argument. It will copy the file, save the details to db and return the FileDetail entity
+                    savedFileDetail = fileService.saveFile(attachedFile);
+                }
+                newRequest.setUser(userFromDb);
+                newRequest.setPriority(priorityFromDb);
+                newRequest.setStatus(statusFromDb);
+                newRequest.setFileDetail(savedFileDetail);
+
+                Request savedRequest = requestRepository.save(newRequest);
+                RequestDto requestDto = RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
+                /// request is successfully completed
+                pendingCallback.setWorkerResult(successResult);
+                WorkerResultDto workerResultDto = new WorkerResultDto(successResult.getResultId(), successResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+                callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+
+            } else {
+                log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
+                throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
             }
-            newRequest.setUser(userFromDb);
-            newRequest.setPriority(priorityFromDb);
-            newRequest.setStatus(statusFromDb);
-            newRequest.setFileDetail(savedFileDetail);
-
-            Request savedRequest = requestRepository.save(newRequest);
-            RequestDto requestDto = RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
-
-            /// log the thread name which is handling this task
-            log.info("Thread handling async request operations: {}", Thread.currentThread().getName());
-            try {
-                // simulate delay
-                Thread.sleep(15000);
-            } catch (InterruptedException e) {}
-
-            return CompletableFuture.completedFuture(requestDto);
-
-        } else {
-            log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
-            throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
+        } catch (InterruptedException e) {
+            pendingCallback.setWorkerResult(interruptedResult);
+            WorkerResultDto workerResultDto = new WorkerResultDto(interruptedResult.getResultId(), interruptedResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+            callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+            throw new RuntimeException(e.getMessage());
+        } catch (UserNotFoundException e) {
+            pendingCallback.setWorkerResult(errorResult);
+            WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+            callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+            throw new UserNotFoundException(e.getMessage());
+        } catch (PriorityNotFoundException e) {
+            pendingCallback.setWorkerResult(errorResult);
+            WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+            callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+            throw new PriorityNotFoundException(e.getMessage());
+        } catch (StatusNotFoundException e) {
+            pendingCallback.setWorkerResult(errorResult);
+            WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+            callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+            throw new StatusNotFoundException(e.getMessage());
+        } catch (IOException e) {
+            pendingCallback.setWorkerResult(errorResult);
+            WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
+            callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
+            throw new IOException(e.getMessage());
         }
+
     }
 
     @Override

@@ -22,4 +22,5 @@ public class RequestDto {
     private String priority;
     private String status;
     private long documentId;
+    private String callbackUrl;
 }

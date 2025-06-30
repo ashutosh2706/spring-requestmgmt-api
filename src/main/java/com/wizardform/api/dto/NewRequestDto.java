@@ -30,4 +30,5 @@ public class NewRequestDto {
     private int priorityCode;
     private int statusCode;
     private MultipartFile attachedFile;
+    private String callbackUrl;
 }

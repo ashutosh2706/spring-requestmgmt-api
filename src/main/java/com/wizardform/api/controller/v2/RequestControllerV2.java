@@ -1,13 +1,14 @@
 package com.wizardform.api.controller.v2;
 
 import com.wizardform.api.dto.NewRequestDto;
-import com.wizardform.api.dto.RequestDto;
+import com.wizardform.api.exception.CallbackAbsentException;
 import com.wizardform.api.exception.PriorityNotFoundException;
 import com.wizardform.api.exception.StatusNotFoundException;
 import com.wizardform.api.exception.UserNotFoundException;
 import com.wizardform.api.service.RequestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "Request Controller", description = "Handles operations related to request management")
 @RestController
@@ -38,10 +38,15 @@ public class RequestControllerV2 {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ROLE_USER')")
-    public CompletableFuture<ResponseEntity<?>> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
-            throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException {
-        CompletableFuture<RequestDto> futureRequest = requestService.addNewRequestAsync(newRequestDto);
-        return futureRequest.thenApply(addedRequest ->
-                ResponseEntity.created(URI.create("/v2/requests")).body(addedRequest));
+    public ResponseEntity<?> addNewRequest(@Valid @ModelAttribute NewRequestDto newRequestDto)
+            throws UserNotFoundException, StatusNotFoundException, PriorityNotFoundException, IOException, CallbackAbsentException {
+
+        if(newRequestDto.getCallbackUrl() == null || StringUtils.isBlank(newRequestDto.getCallbackUrl().trim()) ||
+                StringUtils.isEmpty(newRequestDto.getCallbackUrl().trim())) {
+            throw new CallbackAbsentException("Callback required for async task");
+        }
+
+        requestService.addNewRequestAsync(newRequestDto);
+        return ResponseEntity.accepted().build();
     }
 }
