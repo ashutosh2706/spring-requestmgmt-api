@@ -40,7 +40,7 @@ public class SecurityConfig {
         return new JwtAuthFilter();
     }
 
-    private static final String[] WHITE_LISTED_PATHS = {"/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"};
+    private static final String[] WHITE_LISTED_PATHS = {"/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
