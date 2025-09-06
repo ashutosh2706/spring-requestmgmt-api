@@ -2,6 +2,8 @@ package com.wizardform.api;
 
 public final class Constants {
 
+    // to prevent initialization
+    private Constants() {}
     public static final String UPLOAD_DIR = "Attachments";
     public static final String ROOT_PATH = System.getProperty("user.dir");
     public static final String BEARER_TOKEN = "Bearer";

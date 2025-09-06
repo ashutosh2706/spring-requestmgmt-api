@@ -10,5 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface AuthService {
     AuthResponseDto authenticateUser(AuthRequestDto authRequestDto) throws UserNotFoundException, BadCredentialsException;
+    AuthResponseDto authenticateUser(String email, String password) throws UserNotFoundException, BadCredentialsException;
     AuthResponseDto refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) throws InvalidRefreshTokenException, ExpiredRefreshTokenException, UserNotFoundException;
 }

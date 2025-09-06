@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.net.URI;
 
@@ -39,21 +40,47 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @PostMapping(value = "login", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "login",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<?> loginUser(@Valid @RequestBody AuthRequestDto authRequest)
             throws UserNotFoundException, BadCredentialsException {
         AuthResponseDto authResponse = authService.authenticateUser(authRequest);
         return ResponseEntity.ok(authResponse);
     }
 
-    @PostMapping(value = "register", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "login",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> loginUser(
+            @RequestParam(name = "email") String email,
+            @RequestParam(name = "password") String password)
+            throws UserNotFoundException, BadCredentialsException {
+
+        AuthResponseDto authResponse = authService.authenticateUser(email, password);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping(
+            value = "register",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto userDto)
             throws RoleNotFoundException {
         UserResponseDTO addedUser = userService.addUser(userDto);
         return ResponseEntity.created(URI.create("auth/login")).body(addedUser);
     }
 
-    @PostMapping(value = "refreshToken", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "refreshToken",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDto tokenRequestDto)
             throws InvalidRefreshTokenException, ExpiredRefreshTokenException, UserNotFoundException {
         AuthResponseDto authResponse = authService.refreshToken(tokenRequestDto);

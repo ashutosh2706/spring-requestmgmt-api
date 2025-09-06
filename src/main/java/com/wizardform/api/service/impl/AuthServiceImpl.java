@@ -12,6 +12,7 @@ import com.wizardform.api.model.RefreshToken;
 import com.wizardform.api.service.AuthService;
 import com.wizardform.api.service.JwtService;
 import com.wizardform.api.service.RefreshTokenService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
 @Component
 public class AuthServiceImpl implements AuthService {
 
@@ -29,6 +32,9 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+    );
 
     @Autowired
     public AuthServiceImpl(AuthenticationManager authenticationManager, JwtService jwtService, RefreshTokenService refreshTokenService) {
@@ -49,6 +55,24 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return null;
+    }
+
+    @Override
+    public AuthResponseDto authenticateUser(String email, String password) throws UserNotFoundException, BadCredentialsException {
+        if(StringUtils.isEmpty(email) || StringUtils.isBlank(email) || email.trim().length() == 0) {
+            throw new BadCredentialsException("Email must be valid and non-empty");
+        }
+
+        if(StringUtils.isEmpty(password) || StringUtils.isBlank(password)) {
+            throw new BadCredentialsException("Password must be non-empty");
+        }
+
+        if(!EMAIL_PATTERN.matcher(email).matches()) {
+            throw new BadCredentialsException("Email must be valid");
+        }
+
+        AuthRequestDto authRequest = new AuthRequestDto(email, password);
+        return this.authenticateUser(authRequest);
     }
 
     // refresh token will be rotated when a new access token is requested
