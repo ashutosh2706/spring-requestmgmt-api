@@ -165,7 +165,7 @@ public class RequestServiceImpl implements RequestService {
             MultipartFile attachedFile = newRequestDto.getAttachedFile();
             FileDetail savedFileDetail = null;
 
-            Thread.sleep(20000);
+            Thread.sleep(5000);
 
             // new request status is always pending by default unless changed
             // priorityCode & userId will be provided by user
@@ -188,7 +188,7 @@ public class RequestServiceImpl implements RequestService {
                 pendingCallback.setWorkerResult(successResult);
                 WorkerResultDto workerResultDto = new WorkerResultDto(successResult.getResultId(), successResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
                 callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
-
+                log.info("Task completed");
             } else {
                 log.error("UserNotFoundException: UserId {} doesn't exist or disabled", newRequestDto.getUserId());
                 throw new UserNotFoundException("User with id: " + newRequestDto.getUserId() + " doesn't exist or disabled");
