@@ -39,6 +39,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -144,7 +145,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     @Async
-    public void addNewRequestAsync(NewRequestDto newRequestDto) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
+    public void addNewRequestAsync(NewRequestDto newRequestDto, File tmpFile) throws UserNotFoundException, PriorityNotFoundException, StatusNotFoundException, IOException {
 
         log.info("Task is being executed by thread: {}", Thread.currentThread().getName());
         /// get all worker results
@@ -160,28 +161,19 @@ public class RequestServiceImpl implements RequestService {
 
         try {
             Request newRequest = RequestMapper.INSTANCE.newRequestDtoToRequest(newRequestDto);
-
-            // To handle the attached file
-            MultipartFile attachedFile = newRequestDto.getAttachedFile();
-            FileDetail savedFileDetail = null;
-
             Thread.sleep(5000);
-
             // new request status is always pending by default unless changed
             // priorityCode & userId will be provided by user
             User userFromDb = userService.getUserByUserId(newRequestDto.getUserId());
             Priority priorityFromDb = priorityService.getPriorityByPriorityCode(newRequestDto.getPriorityCode());
             Status statusFromDb = statusService.getStatusByStatusCode(Constants.StatusCode.STATUS_PENDING);
+            FileDetail savedFileDetail = null;
             if(userFromDb.isEnabled()) {
-                if(attachedFile != null) {
-                    // call FileDetail service with multipart file argument. It will copy the file, save the details to db and return the FileDetail entity
-                    savedFileDetail = fileService.saveFile(attachedFile);
-                }
+                if(tmpFile != null) savedFileDetail = fileService.saveFile(tmpFile);
                 newRequest.setUser(userFromDb);
                 newRequest.setPriority(priorityFromDb);
                 newRequest.setStatus(statusFromDb);
                 newRequest.setFileDetail(savedFileDetail);
-
                 Request savedRequest = requestRepository.save(newRequest);
                 RequestDto requestDto = RequestMapper.INSTANCE.requestToRequestDto(savedRequest);
                 /// request is successfully completed
@@ -213,7 +205,8 @@ public class RequestServiceImpl implements RequestService {
             WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
             callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);
             throw new StatusNotFoundException(e.getMessage());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             pendingCallback.setWorkerResult(errorResult);
             WorkerResultDto workerResultDto = new WorkerResultDto(errorResult.getResultId(), errorResult.getResultType(), workerCallbackRepository.save(pendingCallback).getCreatedAt());
             callbackNotifier.notifyClient(pendingCallback.getCallbackUrl(), workerResultDto);

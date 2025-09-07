@@ -1,5 +1,6 @@
 package com.wizardform.api.service.impl;
 
+import com.wizardform.api.dto.NewRequestDto;
 import com.wizardform.api.exception.FileDetailsNotFoundException;
 import com.wizardform.api.helper.Utils;
 import com.wizardform.api.model.FileDetail;
@@ -13,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import static com.wizardform.api.Constants.ROOT_PATH;
@@ -56,6 +59,26 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public FileDetail saveFile(File tmpFile) throws IOException {
+
+        File uploadDir = new File(ROOT_PATH, UPLOAD_DIR);
+        if(!uploadDir.exists()) uploadDir.mkdir();
+
+        String originalFileName = tmpFile.getName();
+        String extension = originalFileName != null ? originalFileName.substring(originalFileName.lastIndexOf('.') + 1) : "";
+        String newFileName = String.format("Attachment_%d.%s", System.currentTimeMillis(), extension);
+        File destinationFile = new File(uploadDir, newFileName);
+        Files.copy(tmpFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        String fileChecksum = Utils.calculateChecksum(destinationFile);
+        tmpFile.delete();
+        // Create a FileDetail instance and save it to DB
+        FileDetail fileDetail = new FileDetail();
+        fileDetail.setFileName(newFileName);
+        fileDetail.setChecksum(fileChecksum);
+        return fileDetailRepository.save(fileDetail);
+    }
+
+    @Override
     public FileDetail getFileDetailByFileId(long fileId) throws FileDetailsNotFoundException {
         Optional<FileDetail> fileDetailsOptional = fileDetailRepository.findByFileId(fileId);
         if(fileDetailsOptional.isPresent()) {
@@ -82,5 +105,22 @@ public class FileServiceImpl implements FileService {
             log.error("FileDetailsNotFoundException: No file details found for fileId {}", fileId);
             throw new FileDetailsNotFoundException("No file details found for fileId: " + fileId);
         }
+    }
+
+    @Override
+    public File createTmpFile(NewRequestDto newRequestDto) {
+        if(newRequestDto.getAttachedFile() != null) {
+            var incoming = newRequestDto.getAttachedFile();
+            File tmpdir = new File(ROOT_PATH, "tmp");
+            File tmpFile = new File(tmpdir, incoming.getOriginalFilename());
+            if(!tmpdir.exists()) tmpdir.mkdir();
+            try {
+                incoming.transferTo(tmpFile);
+            } catch (IOException e) {
+                return null;
+            }
+            return tmpFile;
+        }
+        return null;
     }
 }
