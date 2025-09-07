@@ -37,3 +37,6 @@ build/
 ### keystore ###
 *.p12
 *.env
+
+### tmp ###
+tmp/

@@ -5,6 +5,7 @@ import com.wizardform.api.exception.CallbackAbsentException;
 import com.wizardform.api.exception.PriorityNotFoundException;
 import com.wizardform.api.exception.StatusNotFoundException;
 import com.wizardform.api.exception.UserNotFoundException;
+import com.wizardform.api.service.FileService;
 import com.wizardform.api.service.RequestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,8 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 @Tag(name = "Request Controller", description = "Handles operations related to request management")
 @RestController
@@ -27,10 +28,12 @@ import java.net.URI;
 public class RequestControllerV2 {
 
     private final RequestService requestService;
+    private final FileService fileService;
 
     @Autowired
-    public RequestControllerV2(RequestService requestService) {
+    public RequestControllerV2(RequestService requestService, FileService fileService) {
         this.requestService = requestService;
+        this.fileService = fileService;
     }
 
     @PostMapping(
@@ -46,7 +49,8 @@ public class RequestControllerV2 {
             throw new CallbackAbsentException("Callback required for async task");
         }
 
-        requestService.addNewRequestAsync(newRequestDto);
+        File tmp = fileService.createTmpFile(newRequestDto);
+        requestService.addNewRequestAsync(newRequestDto, tmp);
         return ResponseEntity.accepted().build();
     }
 }
